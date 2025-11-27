@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Yield Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #4caf50;
+            --light-green: #e8f5e9;
+            --dark-green: #1b5e20;
+            --accent-color: #ff9800;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .hero-section {
+            background: linear-gradient(rgba(46, 125, 50, 0.8), rgba(46, 125, 50, 0.9)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 80px 0;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--dark-green);
+            border-color: var(--dark-green);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+        }
+        
+        .model-card {
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        
+        .model-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .model-card.selected {
+            border: 2px solid var(--primary-color);
+        }
+        
+        .stats-card {
+            background-color: var(--light-green);
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .prediction-result {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        
+        .metric-badge {
+            font-size: 0.9rem;
+            padding: 5px 10px;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .alert-custom {
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        footer {
+            background-color: var(--dark-green);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+        
+        .data-table {
+            font-size: 0.9rem;
+        }
+        
+        .data-table th {
+            background-color: var(--light-green);
+        }
+        
+        .feature-input {
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            color: var(--dark-green);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-seedling me-2"></i>
+                CropYield Prediction AI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#upload">Upload Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#predict">Predict</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold mb-4">AI-Powered Crop Yield Prediction</h1>
+            <p class="lead mb-4">Harness the power of machine learning to predict crop yields with accuracy using XGBoost and LightGBM algorithms.</p>
+            <a href="#upload" class="btn btn-light btn-lg">Get Started <i class="fas fa-arrow-right ms-2"></i></a>
+        </div>
+    </section>
+
+    <div class="container">
+        <!-- Upload Section -->
+        <section id="upload" class="mb-5">
+            <div class="row">
+                <div class="col-12">
+                    <h2 class="section-title">1. Upload Your Crop Data</h2>
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-upload me-2"></i>Data Upload
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p>Upload a CSV file containing your crop data with the following columns:</p>
+                                    <ul>
+                                        <li><strong>Crop</strong>: Name of the crop</li>
+                                        <li><strong>Crop_Year</strong>: Year of cultivation</li>
+                                        <li><strong>Season</strong>: Growing season</li>
+                                        <li><strong>State</strong>: State/region</li>
+                                        <li><strong>Area</strong>: Cultivated area (hectares)</li>
+                                        <li><strong>Production</strong>: Total production (kg)</li>
+                                        <li><strong>Annual_Rainfall</strong>: Annual rainfall (mm)</li>
+                                        <li><strong>Fertilizer</strong>: Fertilizer used (kg/hectare)</li>
+                                        <li><strong>Pesticide</strong>: Pesticide used (kg/hectare)</li>
+                                        <li><strong>Yield</strong>: Crop yield (kg/hectare)</li>
+                                    </ul>
+                                    <div class="alert alert-info alert-custom">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        The system will automatically train machine learning models on your data after upload.
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="csvFile" class="form-label">Select CSV File</label>
+                                        <input class="form-control" type="file" id="csvFile" accept=".csv">
+                                    </div>
+                                    <button id="uploadBtn" class="btn btn-primary w-100">
+                                        <i class="fas fa-cloud-upload-alt me-2"></i>Upload & Train Models
+                                    </button>
+                                    <div class="loading-spinner" id="uploadSpinner">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2">Training models... This may take a few moments.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section (Initially Hidden) -->
+            <div id="resultsSection" style="display: none;">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h2 class="section-title">Training Results</h2>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <!-- Dataset Info -->
+                    <div class="col-md-6">
+                        <div class="card stats-card">
+                            <div class="card-header bg-transparent border-0 text-dark">
+                                <i class="fas fa-database me-2"></i>Dataset Information
+                            </div>
+                            <div class="card-body">
+                                <div id="datasetInfo"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Model Performance -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-chart-line me-2"></i>Model Performance
+                            </div>
+                            <div class="card-body">
+                                <div id="modelResults"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Data Preview -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-table me-2"></i>Data Preview (First 10 Rows)
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover data-table">
+                                        <thead id="dataPreviewHeader"></thead>
+                                        <tbody id="dataPreviewBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prediction Section -->
+        <section id="predict" class="mb-5">
+            <div class="row">
+                <div class="col-12">
+                    <h2 class="section-title">2. Predict Crop Yield</h2>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-calculator me-2"></i>Prediction Input
+                        </div>
+                        <div class="card-body">
+                            <div id="modelSelection" class="mb-4">
+                                <label class="form-label">Select Prediction Model</label>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="card model-card text-center p-3" data-model="xgb">
+                                            <i class="fas fa-brain feature-icon"></i>
+                                            <h5>XGBoost</h5>
+                                            <p class="text-muted small">Gradient Boosting</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="card model-card text-center p-3" data-model="lgb">
+                                            <i class="fas fa-leaf feature-icon"></i>
+                                            <h5>LightGBM</h5>
+                                            <p class="text-muted small">Light Gradient Boosting</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <form id="predictionForm">
+                                <div class="row">
+                                    <div class="col-md-6 feature-input">
+                                        <label for="crop" class="form-label">Crop</label>
+                                        <select class="form-select" id="crop" required>
+                                            <option value="">Select Crop</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 feature-input">
+                                        <label for="crop_year" class="form-label">Crop Year</label>
+                                        <input type="number" class="form-control" id="crop_year" min="2000" max="2030" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 feature-input">
+                                        <label for="season" class="form-label">Season</label>
+                                        <select class="form-select" id="season" required>
+                                            <option value="">Select Season</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 feature-input">
+                                        <label for="state" class="form-label">State</label>
+                                        <select class="form-select" id="state" required>
+                                            <option value="">Select State</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 feature-input">
+                                        <label for="area" class="form-label">Area (hectares)</label>
+                                        <input type="number" class="form-control" id="area" min="0" step="0.1" required>
+                                    </div>
+                                    <div class="col-md-6 feature-input">
+                                        <label for="annual_rainfall" class="form-label">Annual Rainfall (mm)</label>
+                                        <input type="number" class="form-control" id="annual_rainfall" min="0" step="0.1" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 feature-input">
+                                        <label for="fertilizer" class="form-label">Fertilizer (kg/hectare)</label>
+                                        <input type="number" class="form-control" id="fertilizer" min="0" step="0.1" required>
+                                    </div>
+                                    <div class="col-md-6 feature-input">
+                                        <label for="pesticide" class="form-label">Pesticide (kg/hectare)</label>
+                                        <input type="number" class="form-control" id="pesticide" min="0" step="0.1" required>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary w-100 mt-3" id="predictBtn">
+                                    <i class="fas fa-chart-bar me-2"></i>Predict Yield
+                                </button>
+                            </form>
+                            
+                            <div class="loading-spinner" id="predictSpinner">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Calculating prediction...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <i class="fas fa-chart-pie me-2"></i>Prediction Results
+                        </div>
+                        <div class="card-body">
+                            <div id="predictionPlaceholder" class="text-center text-muted py-5">
+                                <i class="fas fa-seedling fa-3x mb-3"></i>
+                                <p>Enter crop details and click "Predict Yield" to see results</p>
+                            </div>
+                            <div id="predictionResult" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="mb-5">
+            <div class="row">
+                <div class="col-12">
+                    <h2 class="section-title">How It Works</h2>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <div class="step-number">1</div>
+                            <h4 class="mt-2">Upload Data</h4>
+                            <p>Upload your historical crop data in CSV format with required features like crop type, area, rainfall, etc.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <div class="step-number">2</div>
+                            <h4 class="mt-2">Train Models</h4>
+                            <p>The system automatically trains XGBoost and LightGBM models on your data to learn yield patterns.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <div class="step-number">3</div>
+                            <h4 class="mt-2">Predict Yield</h4>
+                            <p>Input new crop parameters and get accurate yield predictions to optimize your farming decisions.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-cogs me-2"></i>Technical Details
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>Algorithms Used</h5>
+                                    <ul>
+                                        <li><strong>XGBoost</strong>: Extreme Gradient Boosting - known for high performance and accuracy</li>
+                                        <li><strong>LightGBM</strong>: Light Gradient Boosting Machine - efficient and fast training</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Features Considered</h5>
+                                    <ul>
+                                        <li>Crop type and variety</li>
+                                        <li>Seasonal factors</li>
+                                        <li>Geographical location</li>
+                                        <li>Agricultural inputs (fertilizer, pesticide)</li>
+                                        <li>Environmental conditions (rainfall)</li>
+                                        <li>Historical yield data</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4><i class="fas fa-seedling me-2"></i>CropYield Prediction AI</h4>
+                    <p>Harnessing the power of machine learning to transform agriculture through data-driven insights.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#upload" class="text-light">Upload Data</a></li>
+                        <li><a href="#predict" class="text-light">Predict Yield</a></li>
+                        <li><a href="#about" class="text-light">How It Works</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>Members</h5>
+                    <div class="d-flex">
+                        <a href="#" class="text-light me-3">Harsh Hate - 22102B0006</i></a><br>
+                        <a href="#" class="text-light me-3">Gopini Dhargave - 22102B0022</i></a><br>
+                        <a href="#" class="text-light me-3">Swarali Sonje - 22102B0018</i></a><br>
+                        <a href="#" class="text-light">Omkar Thube - 22102B0005</i></a><br>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p>&copy; 2025 CropYield Prediction AI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap & jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            let selectedModel = 'xgb';
+            
+            // Initialize model selection
+            $('.model-card').first().addClass('selected');
+            
+            // Model selection handler
+            $('.model-card').click(function() {
+                $('.model-card').removeClass('selected');
+                $(this).addClass('selected');
+                selectedModel = $(this).data('model');
+            });
+            
+            // File upload handler
+            $('#uploadBtn').click(function() {
+                const fileInput = $('#csvFile')[0];
+                if (!fileInput.files.length) {
+                    alert('Please select a CSV file to upload.');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                
+                $('#uploadSpinner').show();
+                $('#uploadBtn').prop('disabled', true);
+                
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#uploadSpinner').hide();
+                        $('#uploadBtn').prop('disabled', false);
+                        
+                        // Show results section
+                        $('#resultsSection').show();
+                        
+                        // Display dataset info
+                        const info = response.dataset_info;
+                        $('#datasetInfo').html(`
+                            <p><strong>Total Samples:</strong> ${info.total_samples}</p>
+                            <p><strong>Features:</strong> ${info.features}</p>
+                            <p><strong>Unique Crops:</strong> ${info.crops}</p>
+                            <p><strong>Unique States:</strong> ${info.states}</p>
+                            <p><strong>Unique Seasons:</strong> ${info.seasons}</p>
+                        `);
+                        
+                        // Display model results
+                        let resultsHtml = '';
+                        for (const [model, metrics] of Object.entries(response.results)) {
+                            resultsHtml += `
+                                <div class="mb-3">
+                                    <h5>${model.toUpperCase()}</h5>
+                                    <span class="badge bg-primary metric-badge">MAE: ${metrics.mae.toFixed(4)}</span>
+                                    <span class="badge bg-success metric-badge">RMSE: ${metrics.rmse.toFixed(4)}</span>
+                                    <span class="badge bg-info metric-badge">R²: ${metrics.r2.toFixed(4)}</span>
+                                </div>
+                            `;
+                        }
+                        $('#modelResults').html(resultsHtml);
+                        
+                        // Display data preview
+                        if (response.data_preview && response.data_preview.length > 0) {
+                            const headers = Object.keys(response.data_preview[0]);
+                            let headerHtml = '<tr>';
+                            headers.forEach(header => {
+                                headerHtml += `<th>${header}</th>`;
+                            });
+                            headerHtml += '</tr>';
+                            $('#dataPreviewHeader').html(headerHtml);
+                            
+                            let bodyHtml = '';
+                            response.data_preview.forEach(row => {
+                                bodyHtml += '<tr>';
+                                headers.forEach(header => {
+                                    bodyHtml += `<td>${row[header]}</td>`;
+                                });
+                                bodyHtml += '</tr>';
+                            });
+                            $('#dataPreviewBody').html(bodyHtml);
+                        }
+                        
+                        // Update dropdowns with available categories
+                        updateCategoryDropdowns(response.available_categories);
+                        
+                        // Scroll to results
+                        $('html, body').animate({
+                            scrollTop: $('#resultsSection').offset().top - 70
+                        }, 500);
+                    },
+                    error: function(xhr) {
+                        $('#uploadSpinner').hide();
+                        $('#uploadBtn').prop('disabled', false);
+                        
+                        let errorMsg = 'An error occurred during upload.';
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            errorMsg = response.error || errorMsg;
+                        } catch (e) {
+                            // Use default error message
+                        }
+                        
+                        alert('Error: ' + errorMsg);
+                    }
+                });
+            });
+            
+            // Prediction form handler
+            $('#predictionForm').submit(function(e) {
+                e.preventDefault();
+                
+                // Validate form
+                if (!validatePredictionForm()) {
+                    return;
+                }
+                
+                // Prepare data
+                const formData = {
+                    model_type: selectedModel,
+                    crop: $('#crop').val(),
+                    crop_year: $('#crop_year').val(),
+                    season: $('#season').val(),
+                    state: $('#state').val(),
+                    area: $('#area').val(),
+                    annual_rainfall: $('#annual_rainfall').val(),
+                    fertilizer: $('#fertilizer').val(),
+                    pesticide: $('#pesticide').val()
+                };
+                
+                $('#predictSpinner').show();
+                $('#predictBtn').prop('disabled', true);
+                
+                $.ajax({
+                    url: '/predict',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        $('#predictSpinner').hide();
+                        $('#predictBtn').prop('disabled', false);
+                        
+                        displayPredictionResult(response);
+                    },
+                    error: function(xhr) {
+                        $('#predictSpinner').hide();
+                        $('#predictBtn').prop('disabled', false);
+                        
+                        let errorMsg = 'An error occurred during prediction.';
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            errorMsg = response.error || errorMsg;
+                        } catch (e) {
+                            // Use default error message
+                        }
+                        
+                        alert('Error: ' + errorMsg);
+                    }
+                });
+            });
+            
+            // Helper function to update category dropdowns
+            function updateCategoryDropdowns(categories) {
+                if (categories.crop) {
+                    $('#crop').empty().append('<option value="">Select Crop</option>');
+                    categories.crop.forEach(crop => {
+                        $('#crop').append(`<option value="${crop}">${crop}</option>`);
+                    });
+                }
+                
+                if (categories.season) {
+                    $('#season').empty().append('<option value="">Select Season</option>');
+                    categories.season.forEach(season => {
+                        $('#season').append(`<option value="${season}">${season}</option>`);
+                    });
+                }
+                
+                if (categories.state) {
+                    $('#state').empty().append('<option value="">Select State</option>');
+                    categories.state.forEach(state => {
+                        $('#state').append(`<option value="${state}">${state}</option>`);
+                    });
+                }
+            }
+            
+            // Helper function to validate prediction form
+            function validatePredictionForm() {
+                const requiredFields = [
+                    'crop', 'crop_year', 'season', 'state', 
+                    'area', 'annual_rainfall', 'fertilizer', 'pesticide'
+                ];
+                
+                for (const field of requiredFields) {
+                    if (!$('#' + field).val()) {
+                        alert(`Please fill in the ${field.replace('_', ' ')} field.`);
+                        $('#' + field).focus();
+                        return false;
+                    }
+                }
+                
+                return true;
+            }
+            
+            // Helper function to display prediction result
+            function displayPredictionResult(result) {
+                $('#predictionPlaceholder').hide();
+                
+                const resultHtml = `
+                    <div class="prediction-result">
+                        <h4 class="text-primary">Predicted Yield: ${result.predicted_yield} ${result.units}</h4>
+                        <p class="mb-0"><strong>Model Used:</strong> ${result.model_used}</p>
+                    </div>
+                    <div class="mt-4">
+                        <h5>Interpretation</h5>
+                        <p>Based on the input parameters, the predicted crop yield is <strong>${result.predicted_yield} ${result.units}</strong>.</p>
+                        <p>This prediction can help you:</p>
+                        <ul>
+                            <li>Plan harvesting and storage requirements</li>
+                            <li>Estimate potential revenue</li>
+                            <li>Optimize resource allocation for future crops</li>
+                        </ul>
+                    </div>
+                `;
+                
+                $('#predictionResult').html(resultHtml).show();
+                
+                // Scroll to result
+                $('html, body').animate({
+                    scrollTop: $('#predictionResult').offset().top - 70
+                }, 500);
+            }
+            
+            // Load available categories on page load if models are already trained
+            $.get('/status', function(response) {
+                if (response.is_trained) {
+                    $.get('/get_categories', function(categories) {
+                        updateCategoryDropdowns(categories);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
